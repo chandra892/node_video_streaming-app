@@ -8,7 +8,13 @@ dotenv.config({
 
 
 
-connectDB();
+connectDB()
+.then(()=>{
+    console.log("connected to database")
+})
+.catch((err)=>{
+    console.log("Connection failed ", err);
+})
 
 
 
