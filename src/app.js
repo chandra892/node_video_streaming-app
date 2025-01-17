@@ -12,4 +12,29 @@ app.use(express.static("public"));
 app.use(express.urlencoded({extended: true, limit:'1kb'}))
 app.use(cookieParser());
 
+
+// import rotes 
+import userRouter from './routes/user.routes.js'
+
+
+// declare routes here
+app.use("/api/v1/users", userRouter)
+
+// http://localhost:8000/api/v1/users/register
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export { app }

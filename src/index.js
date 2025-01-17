@@ -1,20 +1,20 @@
-// require (dotenv) .config() 
-import jwt from "jsonwebtoken"
 import dotenv from 'dotenv'
 import connectDB from "./db/index.js";
 dotenv.config({
     path: './env'
 })
 
-
+import { app } from "./app.js"
 
 connectDB()
-.then(()=>{
-    console.log("connected to database")
-})
-.catch((err)=>{
-    console.log("Connection failed ", err);
-})
+    .then(() => {
+        app.listen(process.env.PORT, () => {
+            console.log(`Server is running on port ${process.env.PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.log("Mongodb Connection failed ", err);
+    })
 
 
 
