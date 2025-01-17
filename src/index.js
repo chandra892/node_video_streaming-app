@@ -1,5 +1,5 @@
 // require (dotenv) .config() 
-
+import jwt from "jsonwebtoken"
 import dotenv from 'dotenv'
 import connectDB from "./db/index.js";
 dotenv.config({
