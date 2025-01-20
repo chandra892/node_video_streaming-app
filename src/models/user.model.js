@@ -4,13 +4,13 @@ import jwt from "jsonwebtoken"
 
 const userSchema = new mongoose.Schema(
     {
-        name: {
+        userName: {
             type: String,
             required: true,
             unique: true,
             lowercase: true,
             trim: true,
-            indexe: true
+            index: true
         },
         email: {
             type: String,
@@ -19,11 +19,11 @@ const userSchema = new mongoose.Schema(
             lowercase: true,
             trim: true,
         },
-        fullname: {
+        fullName: {
             type: String,
             required: true,
             trim: true,
-            indexe: true
+            index: true
         },
         avatar: {
             type: String, // cloudinery url 
@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema(
             required: [true, "Password is required"],
 
         },
-        refreshTokens: {
+        refreshToken: {
             type: String,
         }
 
@@ -66,8 +66,8 @@ userSchema.methods.generateAcess = function () {
     return jwt.sign({
         _id: this._id,
         email: this.email,
-        username: this.username,
-        fullname: this.fullname
+    userName: this.userName,
+        fullName: this.fullName
     }, process.env.SECRET_KEY, {
         expiresIn: process.env.SECRET_KEY_EXPIRY
     })
