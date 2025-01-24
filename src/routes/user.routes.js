@@ -1,5 +1,7 @@
 import Router from "express";
 import { registerUser } from '../controllers/user.controller.js';
+import {loginUser} from "../controllers/user.controller.js"
+import {logoutUser} from "../controllers/user.controller.js"
 import { upload } from "../middlewares/multer.middleware.js";
 
 const route = Router()
@@ -14,6 +16,11 @@ route.post("/register", upload.fields(
         maxCount: 1
     }]
 ), registerUser)
+
+route.post("/login", loginUser)
+
+// secured routes
+route.post("/logout", verifyJwt, logoutUser)
 
 
 
