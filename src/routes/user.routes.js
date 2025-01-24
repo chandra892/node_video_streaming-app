@@ -1,7 +1,6 @@
 import Router from "express";
 import { registerUser } from '../controllers/user.controller.js';
-import {loginUser} from "../controllers/user.controller.js"
-import {logoutUser} from "../controllers/user.controller.js"
+import { loginUser,logoutUser , refreshAccessToken} from "../controllers/user.controller.js"
 import { upload } from "../middlewares/multer.middleware.js";
 import verifyJwt from '../middlewares/auth.middileware.js'
 
@@ -22,6 +21,7 @@ route.post("/login", loginUser)
 
 // secured routes
 route.post("/logout", verifyJwt, logoutUser)
+route.post("/refresh-token", refreshAccessToken)
 
 
 
