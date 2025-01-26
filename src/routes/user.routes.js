@@ -37,7 +37,7 @@ route.get("/current-user", verifyJwt, getCurrentUser )
 route.patch("/update-account", verifyJwt, updateAccountDetails)
 
 route.patch("/avatar", verifyJwt, upload.single("avatar"), updateUserAvatar)
-route.patch("/cover-image", verifyJwt, upload.single("/coverImage"), updateUserCoverImage)
+route.patch("/cover-image", verifyJwt, upload.single("coverImage"), updateUserCoverImage)
 route.get("/c/:username", verifyJwt, getUserChannelProfile)
 route.get("/watch-history", verifyJwt, getWatchHistory)
 
