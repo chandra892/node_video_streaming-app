@@ -62,7 +62,7 @@ userSchema.methods.isPasswordCorrect = async function (password) {
 }
 
 // create custom methods to genearte access Token
-userSchema.methods.generateAcess = function () {
+userSchema.methods.generateAccess = function () {
     return jwt.sign({
         _id: this._id,
         email: this.email,

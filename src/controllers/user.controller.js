@@ -1,4 +1,5 @@
 import { asyncHandler } from "../utils/asyncHandler.js"
+import jwt from "jsonwebtoken"
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { User } from "../models/user.model.js"
@@ -24,13 +25,17 @@ const generateAccessAndRefresherTokens = async (userId) => {
 
   try {
     const user = await User.findById(userId);
-    const accessToken = user.generateAcess()
+    const accessToken =  user.generateAccess()
     const refreshToken = user.generateRefreshToken()
+    console.log(refreshToken);  
+    console.log("Type of refreshToken:", typeof refreshToken); // Log the type of the token
+   
+
 
     user.refreshToken = refreshToken
     await user.save({ validateBeforeSave: false })
 
-    return { accessToken, refreshToken }
+    return {accessToken, refreshToken}
 
   } catch (error) {
     throw new ApiError(500, "Something went wrong while generating and refresh access token")
@@ -150,14 +155,12 @@ const loginUser = asyncHandler(async (req, res) => {
 
     // 3. check if password is correct
     const isValidPassword = await user.isPasswordCorrect(password);
-
-
     if (!isValidPassword) {
       throw new ApiError(401, "Invalid password")
     }
+
     // 4. generate token and send response to user
     const { accessToken, refreshToken } = await generateAccessAndRefresherTokens(user._id)
-
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
 
     const options = {
@@ -167,8 +170,8 @@ const loginUser = asyncHandler(async (req, res) => {
 
     return res
       .status(200)
-      .cookie("accessToken", options, options)
-      .cookie("refreshToken", options, options)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
       .json(
         new ApiResponse(
           200, {
@@ -185,13 +188,14 @@ const loginUser = asyncHandler(async (req, res) => {
   }
 })
 
-// logout business logic
+// logout business logic ?
 const logoutUser = asyncHandler(async (req, res) => {
   try {
     await User.findByIdAndUpdate(
       req.user._id,
       {
-        $set: { refreshToken: undefined }
+        $unset: { refreshToken: 1 },
+
       },
       { new: true }
     )
@@ -210,8 +214,7 @@ const logoutUser = asyncHandler(async (req, res) => {
       )
 
   } catch (error) {
-    throw new ApiError(500, error.message, "User logout failed")
-
+    throw new ApiError(500, error.message || "User logout failed")
   }
 })
 
@@ -268,6 +271,9 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body
 
   const user = await User.findById(req.user?._id)
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
   const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
   if (!isPasswordCorrect) {
     throw new ApiError(401, "Old password is incorrect")
@@ -416,59 +422,63 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     }
   ])
 
-  if(!channel?.length){
+  if (!channel?.length) {
     throw new ApiError(401, "Channel not found ")
   }
 
   return res
-  .status(200)
-  .json(
-    new ApiResponse(200, channel[0], "User channel fetched successfully")
-  )
+    .status(200)
+    .json(
+      new ApiResponse(200, channel[0], "User channel fetched successfully")
+    )
 
 
 })
 
-const getWatchHistory = asyncHandler(async (req, res) =>{
-    const user = await User.aggregate([
-      {
-        $match: {
-          _id: new mongoose.Types.ObjectId(req.user._id)
-        }
-      },
-      {
-        $lookup: {
-          from: "videos",
-          localField: "watchHistory",
-          foreignField: "_id",
-          as: "watchHistory",
-          pipeline: [
-            {
-              $lookup: {
-                from: "users",
-                localField: "owner",
-                foreignField: "_id",
-                as: "owner",
-                pipeline: [
-                  {
-                    $project: {
-                      function: 1,
-                      userName: 1,
-                      avatar: 1
-                    }
-                  }
-                ]
-              },
-              $addFields: {
-                owner: { $first: $owner }
-              }
-            }
-          ]
-        }
+const getWatchHistory = asyncHandler(async (req, res) => {
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id)
       }
-    ])
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    function: 1,
+                    userName: 1,
+                    avatar: 1
+                  }
+                }
+              ]
+            },
+            $addFields: {
+              owner: { $first: "$owner" }
+            }
+          }
+        ]
+      }
+    }
+  ])
 
-    return res.status(200)
+  if (!user.length) {
+    throw new ApiError(404, "User not found");
+  }
+
+  return res.status(200)
     .json(
       new ApiResponse(200, user[0].watchHistory, "User watch history fetched successfully")
     )

@@ -28,8 +28,6 @@ route.post("/register", upload.fields(
 ), registerUser)
 
 route.post("/login", loginUser)
-
-// secured routes ?
 route.post("/logout", verifyJwt, logoutUser)
 route.post("/refresh-token", refreshAccessToken)
 route.post("/change-password", verifyJwt, changeCurrentPassword)
